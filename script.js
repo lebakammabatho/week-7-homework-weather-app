@@ -1,55 +1,71 @@
+function getWeather() {
+    const apiKey = '83c76fa4446d27f41abf7c6b1adc7045';
+    const city = document.getElementById('city').value;
+    
+    if (!city) {
+        alert('Please  enter a city');
+        return;
+    }
+    const currentWeatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}`;
+    const forecastUrl = `https://api.openweathermap.org/data/data/2.5/forecast?q=${city}&appid=${apiKey}`;
 
-function search(event) {
-  event.preventDefault();
-  let searchInputElement = document.querySelector("#city-input");
-  let cityElement = document.querySelector("#current-city");
-  cityElement.innerHTML = searchInputElement.value;
+    fetch(currentWeatherUrl)
+        .then(Response => Response.json())
+        .then(data => {
+            displayWeather (data);
+        })
+        .catch(error => {
+            console.error('Error fetching current weather data', error);
+                    alert('Error fetching current weather data. Please try again');
+        });
+
+        fetch(forecastUrl)
+            .then(Response => Response.json())
+            .then(data => {
+                displayHourlyForecast(data.list);
+            })
+            .catch(error => {
+                console.error('Error fetching hourly forecast data', error);
+                        alert('Error fetching hourly forecast data. Please try again.');
+            });
 }
 
-function formatDate(date) {
-  let minutes = date.getMinutes();
-  let hours = date.getHours();
-  let day = date.getDay();
+function displayWeather(data) {
+    const tempDivInfo = document.getElementById('temp-div');
+    const weatherInfoDiv = document.getAnimations('weather-info');
+    const weatherIcon = document.getElementById('weather-icon')
+    const hourlyForecastDiv = document.getElementById ('hourly-forecast');
 
-  if (minutes < 10) {
-    minutes = `0${minutes}`;
-  }
+    weatherInfoDiv.innerHtml = '';
+    hourlyForecastDiv.innerHTML = '';
+    tempDivInfo.innerHTML = '';
 
-  if (hours < 10) {
-    hours = `0${hours}`;
-  }
+   if (data.cod === "404") {
+     weatherInfoDiv.innerHTML = `<p>${data.message}</p>`;
+   } else {
+    const cityName = data.name;
+    const temperature = Math.round(data.main.temp - 273.15);
+    const description = data.weather[0].description;
+    const iconCode = data.weather[0].icon;
+    const iconUrl = `https://openweather.org/img/wn/${iconCode}@4x.png`;
 
-  let days = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-  ];
+    const temperatureHTML = `
+    <p>${temperature}°C</p>
+    `;
+    const weatherHtml = ` 
+    <p>${cityName}</p>
+    <p>${description}</p>
+    `;
+    tempDivInfo.innerHTML = temperatureHTML;
+    weatherInfoDiv.innerHTML = weatherHtml;
+    weatherIcon.src = iconUrl;
+    weatherIcon.alt = description;
+    
 
-  let formattedDay = days[day];
-  return `${formattedDay} ${hours}:${minutes}`;
+    showImage();
+
+
+   } 
+   
+
 }
-let city = "Pretoria";
-let searchForm = document.querySelector("#search-form");
-searchForm.addEventListener("submit", search);
-
-let currentDateELement = document.querySelector("#current-date");
-let currentDate = new Date();
-currentDateELement.innerHTML = formatDate(currentDate);
-
-let apiKey = "d059510f0t7f54boed6ea43f3f206f9c";
-let apiUrl = `https://api.shecodes.io/weather/v1/current?query=${city}&key=${apiKey}&units=metric`;
-let temperature = 7;
-function showWeather(response) {
-  console.log(response.data.temperature.current);
-  let temperatureElement = document.querySelector("#current-temperature-value");
-  temperatureElement.innerHTML = Math.round(response.data.temperature.current);
-  let cityElement = document.querySelector("#current-city");
-  cityElement.innerHTML = response.data.city;
-  let city = response.data.city;
-}
-
-axios.get(apiUrl).then(showWeather);
